@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento em Ação</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .characters {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        
+        .character {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            width: 45%;
+            transition: transform 0.3s;
+        }
+        
+        .character:hover {
+            transform: scale(1.05);
+        }
+        
+        .character img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #3498db;
+        }
+        
+        .ana {
+            background-color: #ffe6f2;
+        }
+        
+        .guilherme {
+            background-color: #e6f7ff;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .event-log {
+            height: 150px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+        
+        .event {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .level-indicator {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .character-dialogue {
+            font-style: italic;
+            color: #7f8c8d;
+            text-align: center;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Orçamento em Ação</h1>
+        
+        <div class="level-indicator">Nível 1: Gerenciamento de Recursos</div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="characters">
+            <div class="character ana">
+                <img src="https://i.imgur.com/J7l5wqj.png" alt="Ana">
+                <h3>Ana</h3>
+                <p>A Economista</p>
+                <div class="character-dialogue" id="anaDialogue">"Vamos analisar os números primeiro!"</div>
+            </div>
+            
+            <div class="character guilherme">
+                <img src="https://i.imgur.com/mQ4Wyxj.png" alt="Guilherme">
+                <h3>Guilherme</h3>
+                <p>O Gestor Financeiro</p>
+                <div class="character-dialogue" id="guilhermeDialogue">"Precisamos tomar decisões estratégicas!"</div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="money">R$ 5.000</div>
+                <div>Dinheiro</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="reputation">50%</div>
+                <div>Reputação</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="time">30</div>
+                <div>Dias Restantes</div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button onclick="takeAction('invest')">Investir em Projeto</button>
+            <button onclick="takeAction('save')">Economizar Recursos</button>
+            <button onclick="takeAction('hire')">Contratar Equipe</button>
+            <button onclick="takeAction('market')">Campanha de Marketing</button>
+        </div>
+        
+        <div class="event-log" id="eventLog">
+            <div class="event">Bem-vindo ao jogo de Orçamento em Ação! Você tem 30 dias para gerenciar os recursos.</div>
+        </div>
+    </div>
+    
+    <script>
+        // Variáveis do jogo
+        let gameState = {
+            money: 5000,
+            reputation: 50,
+            time: 30,
+            progress: 0,
+            level: 1,
+            anaDialogue: [
+                "Vamos analisar os números primeiro!",
+                "Essa decisão parece financeiramente viável.",
+                "Cuidado com os gastos desnecessários!",
+                "O retorno sobre investimento parece bom.",
+                "Precisamos rever nosso orçamento."
+            ],
+            guilhermeDialogue: [
+                "Precisamos tomar decisões estratégicas!",
+                "Isso vai melhorar nossa posição financeira.",
+                "Vamos pensar no longo prazo.",
+                "A equipe está produzindo bem.",
+                "Temos que priorizar as necessidades."
+            ]
+        };
+        
+        // Atualiza a interface do jogo
+        function updateUI() {
+            document.getElementById('money').textContent = `R$ ${gameState.money.toLocaleString()}`;
+            document.getElementById('reputation').textContent = `${gameState.reputation}%`;
+            document.getElementById('time').textContent = gameState.time;
+            document.getElementById('progressBar').style.width = `${gameState.progress}%`;
+            document.querySelector('.level-indicator').textContent = getLevelDescription();
+        }
+        
+        // Retorna a descrição do nível atual
+        function getLevelDescription() {
+            const levels = [
+                "Nível 1: Gerenciamento de Recursos",
+                "Nível 2: Tomada de Decisões",
+                "Nível 3: Desafios e Obstáculos",
+                "Nível 4: Objetivos e Recompensas"
+            ];
+            return levels[gameState.level - 1] || "Nível Completo!";
+        }
+        
+        // Adiciona um evento ao log
+        function addEvent(message) {
+            const eventLog = document.getElementById('eventLog');
+            const eventElement = document.createElement('div');
+            eventElement.className = 'event';
+            eventElement.textContent = message;
+            eventLog.appendChild(eventElement);
+            eventLog.scrollTop = eventLog.scrollHeight;
+            
+            // Atualiza diálogos aleatórios
+            document.getElementById('anaDialogue').textContent = 
+                gameState.anaDialogue[Math.floor(Math.random() * gameState.anaDialogue.length)];
+            document.getElementById('guilhermeDialogue').textContent = 
+                gameState.guilhermeDialogue[Math.floor(Math.random() * gameState.guilhermeDialogue.length)];
+        }
+        
+        // Ações do jogador
+        function takeAction(action) {
+            let message = "";
+            let success = Math.random() > 0.3; // 70% de chance de sucesso
+            
+            switch(action) {
+                case 'invest':
+                    if (gameState.money >= 1000) {
+                        gameState.money -= 1000;
+                        gameState.reputation += success ? 5 : -3;
+                        gameState.progress += success ? 10 : 5;
+                        message = success ? 
+                            "Investimento bem-sucedido! Retorno positivo esperado." : 
+                            "O investimento não rendeu como esperado.";
+                    } else {
+                        message = "Fundos insuficientes para investir!";
+                    }
+                    break;
+                    
+                case 'save':
+                    gameState.money += 500;
+                    gameState.reputation += success ? 3 : -1;
+                    gameState.progress += success ? 7 : 3;
+                    message = success ? 
+                        "Economia realizada com sucesso!" : 
+                        "Alguns recursos foram desperdiçados.";
+                    break;
+                    
+                case 'hire':
+                    if (gameState.money >= 800) {
+                        gameState.money -= 800;
+                        gameState.reputation += success ? 7 : -5;
+                        gameState.progress += success ? 12 : 6;
+                        message = success ? 
+                            "Nova equipe contratada! Produtividade aumentada." : 
+                            "A nova equipe não se adaptou bem.";
+                    } else {
+                        message = "Não há dinheiro suficiente para contratar!";
+                    }
+                    break;
+                    
+                case 'market':
+                    if (gameState.money >= 600) {
+                        gameState.money -= 600;
+                        gameState.reputation += success ? 10 : -2;
+                        gameState.progress += success ? 15 : 5;
+                        message = success ? 
+                            "Campanha de marketing aumentou sua reputação!" : 
+                            "A campanha não teve o impacto esperado.";
+                    } else {
+                        message = "Orçamento insuficiente para marketing!";
+                    }
+                    break;
+            }
+            
+            // Passa o tempo
+            gameState.time--;
+            
+            // Verifica se avançou de nível
+            if (gameState.progress >= 100 && gameState.level < 4) {
+                gameState.level++;
+                gameState.progress = 0;
+                addEvent(`Parabéns! Você avançou para ${getLevelDescription()}`);
+                
+                // Recompensa por avançar de nível
+                gameState.money += 2000;
+                gameState.reputation += 10;
+            }
+            
+            // Verifica fim do jogo
+            if (gameState.time <= 0) {
+                endGame();
+                return;
+            }
+            
+            // Eventos aleatórios
+            if (Math.random() > 0.7) {
+                randomEvent();
+            }
+            
+            addEvent(message);
+            updateUI();
+        }
+        
+        // Eventos aleatórios no jogo
+        function randomEvent() {
+            const events = [
+                {
+                    message: "Crise econômica! Todos os recursos diminuíram.",
+                    effect: () => {
+                        gameState.money = Math.max(0, gameState.money - 500);
+                        gameState.reputation = Math.max(0, gameState.reputation - 5);
+                    }
+                },
+                {
+                    message: "Doação recebida! +R$ 1000 para seu orçamento.",
+                    effect: () => {
+                        gameState.money += 1000;
+                    }
+                },
+                {
+                    message: "Problemas com a equipe. Reputação diminuída.",
+                    effect: () => {
+                        gameState.reputation = Math.max(0, gameState.reputation - 7);
+                    }
+                },
+                {
+                    message: "Projeto inovador! Reputação aumentada.",
+                    effect: () => {
+                        gameState.reputation = Math.min(100, gameState.reputation + 8);
+                    }
+                }
+            ];
+            
+            const randomEvent = events[Math.floor(Math.random() * events.length)];
+            randomEvent.effect();
+            addEvent("Evento: " + randomEvent.message);
+        }
+        
+        // Finaliza o jogo
+        function endGame() {
+            let finalMessage = "";
+            const score = gameState.money + (gameState.reputation * 100);
+            
+            if (score > 10000) {
+                finalMessage = "Excelente trabalho! Você é um mestre do orçamento!";
+            } else if (score > 7000) {
+                finalMessage = "Bom trabalho! Você gerenciou bem os recursos.";
+            } else if (score > 4000) {
+                finalMessage = "Resultado razoável. Há espaço para melhorias.";
+            } else {
+                finalMessage = "Hmm... precisamos revisar suas estratégias.";
+            }
+            
+            addEvent(`Fim do jogo! Seu resultado final: ${score} pontos. ${finalMessage}`);
+            
+            // Desativa os botões
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+        
+        // Inicializa o jogo
+        updateUI();
+    </script>
+</body>
+</html>
